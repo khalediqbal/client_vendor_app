@@ -1,0 +1,133 @@
+module Main where
+--import Daml.Script
+
+type ChoreProposalId= ContractId ChoreProposal
+type ChoreContractId= ContractId ChoreContract
+
+--Proposal
+template ChoreProposal
+    with
+        vendor: Party
+        client: Party
+        task:Text
+        price:Int
+        note:Text
+    where
+        signatory vendor
+        -- what the proposal from the vendor
+        controller vendor can
+            ---propose
+            Propose: ChoreProposalId
+                with
+                    task_details:Text
+                    amount:Int
+                    feedback:Text
+                do
+                    create this with
+                        --task=task_details
+                        price=amount
+                        note=feedback
+
+            ---Revise
+            Revise: ChoreProposalId
+                with
+                    revision:Text
+                    amount:Int
+                do
+                    create this with
+                        note=revision
+                        price=amount  
+
+        -- what the proposal from the client
+        controller client can
+            --reject the proposal
+            Reject: ChoreProposalId
+                with
+                    feedback:Text
+                do  
+                    create this with
+                        note=feedback
+            
+            Accept: ChoreContractId
+                with 
+                    feedBack:Text
+                    task_description:Text
+                do 
+                    create ChoreContract with
+                        clientInContract=client
+                        vendorInContract=vendor
+                        taskDdetails=task
+                        feedback=feedBack
+
+
+template ChoreContract 
+    with
+        clientInContract: Party
+        vendorInContract:Party
+        taskDdetails:Text
+        feedback:Text
+    where
+        signatory clientInContract,vendorInContract
+
+        controller clientInContract can
+            Finalize: ChoreContractId
+                with 
+                    task_description:Text
+                do
+                    create this with
+                        feedback=task_description
+
+
+
+
+-- setup: Script()
+-- setup= script 
+--     do
+--         alice <-allocateParty "Alice"
+--         bob <- allocateParty "Bob"
+
+--     -- alice propose to clean the house for 200$
+--         rmiphProposal <- submit alice do
+--             createCmd ChoreProposal with
+--                 vendor=alice
+--                 client=bob
+--                 price=500
+--                 task="Clean the house like Honey Mummy for 200$"
+--                 note="vendor proposal"
+    
+
+--         bobRejectProposal <- submit bob do
+--             exerciseCmd rmiphProposal Reject with
+                    
+--                 feedback="You joking Right! All cleaning 20$"
+    
+
+
+
+--         aliceRevisedProposal <- submit alice do
+--             exerciseCmd bobRejectProposal Revise  
+--                 with                   
+--                     revision="All cleaning with 100$"
+--                     amount=200
+       
+                    
+
+--         submit bob do
+--             exerciseCmd aliceRevisedProposal Accept
+--                 with 
+--                     feedBack:"kajsdkjad"
+--                     task_description:"jhkjgkjgkjgkghkhkjhkuhgjhv"
+      
+
+       
+               
+
+
+
+
+
+
+
+
+        
+ 
